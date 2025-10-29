@@ -30,14 +30,14 @@
     "default_popup": "popup.html",
     "default_title": "AF Queue Monitor - Se exakta kötider",
     "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "icons/AF_BEAR.png",
+      "48": "icons/AF_BEAR.png",
+      "128": "icons/AF_BEAR.png"
     }
   },
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icons/AF_BEAR.png",
+    "48": "icons/AF_BEAR.png",
+    "128": "icons/AF_BEAR.png"
   }
 }

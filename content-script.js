@@ -162,8 +162,7 @@ console.log('📞 AF Queue Monitor Extension v1.2.0 - Loading...');
     
     const minutes = parseFloat(msg.minutes);
     if (Number.isFinite(minutes) && minutes > 0) {
-      console.log(`📡 AF Queue Monitor - Received queue data via ${msg.method}:`, minutes, 'min');
-      handleQueueTime(minutes, msg.el);
+      handleQueueTime(minutes, '#phoneQueueAS');
     }
   });
 
