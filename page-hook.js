@@ -1,105 +1,136 @@
 (function(){
-  // Runs in page context. Intercepts writeToElement function calls directly.
+  // AF Queue Monitor v1.2.0 - Page Hook
+  // Runs in page context. Intercepts writeToElement function calls and console.log as fallback.
+  
   const originalConsoleLog = console.log.bind(console);
+  const debugPrefix = '🔧 AF Queue Monitor (Page Hook)';
+  
   try {
-    originalConsoleLog('📞 AF Queue Monitor (page-hook) initialized');
+    originalConsoleLog(`${debugPrefix} - Initializing v1.2.0...`);
   } catch (e) {}
 
   // Primary method: Intercept writeToElement function directly
   function interceptWriteToElement() {
-    // Wait for their script to define writeToElement
     let attempts = 0;
+    const maxAttempts = 50; // ~5 seconds
+    
     const checkForFunction = setInterval(() => {
       attempts++;
-      if (window.writeToElement || attempts > 50) {
+      
+      if (window.writeToElement || attempts >= maxAttempts) {
         clearInterval(checkForFunction);
         
         if (window.writeToElement) {
           const originalWriteToElement = window.writeToElement;
+          
           window.writeToElement = function(num, el) {
             try {
               const minutes = num / 60;
               
               // Send data to content script BEFORE they process it
-              if (el === '#phoneQueueAS') {
+              if (el === '#phoneQueueAS' && minutes > 0) {
                 window.postMessage({
                   source: 'af-queue-monitor',
                   el: el,
                   minutes: minutes,
                   method: 'function-intercept',
-                  rawSeconds: num
+                  rawSeconds: num,
+                  timestamp: Date.now()
                 }, '*');
-                originalConsoleLog('🎯 AF page-hook intercepted writeToElement:', minutes, 'min');
+                
+                originalConsoleLog(`${debugPrefix} - Function intercepted:`, minutes.toFixed(2), 'min');
               }
             } catch (err) {
-              originalConsoleLog('AF function intercept error:', err);
+              originalConsoleLog(`${debugPrefix} - Function intercept error:`, err);
             }
             
-            // Call original function
+            // Call original function to maintain site functionality
             return originalWriteToElement.apply(this, arguments);
           };
-          originalConsoleLog('✅ AF writeToElement function intercepted');
+          
+          originalConsoleLog(`${debugPrefix} - writeToElement function successfully intercepted ✅`);
         } else {
-          originalConsoleLog('❌ AF writeToElement function not found, falling back to console intercept');
+          originalConsoleLog(`${debugPrefix} - writeToElement function not found, using console fallback 📝`);
         }
       }
     }, 100);
   }
 
-  // Backup method: Console log interception (in case function intercept fails)
+  // Backup method: Console log interception (robust fallback)
   console.log = function(...args) {
     try {
-      // Always forward to original
+      // Always forward to original to maintain site functionality
       originalConsoleLog.apply(console, args);
     } catch (e) {}
 
     try {
-      if (args.length >= 4 && args[0] === '#phoneQueueAS' && args[1] === '-' && args[3] === 'min') {
+      // Check for Arbetsförmedlingen's queue time log pattern
+      if (args.length >= 4 && 
+          args[0] === '#phoneQueueAS' && 
+          args[1] === '-' && 
+          args[3] === 'min') {
+        
         const minutes = parseFloat(args[2]);
-        // Send structured message to content script
-        window.postMessage({
-          source: 'af-queue-monitor',
-          el: args[0],
-          minutes: minutes,
-          method: 'console-intercept',
-          raw: args
-        }, '*');
-        try { originalConsoleLog('🎯 AF page-hook detected queue time (console):', minutes, 'min'); } catch (e) {}
+        
+        if (Number.isFinite(minutes) && minutes > 0) {
+          // Send structured message to content script
+          window.postMessage({
+            source: 'af-queue-monitor',
+            el: args[0],
+            minutes: minutes,
+            method: 'console-intercept',
+            raw: args,
+            timestamp: Date.now()
+          }, '*');
+          
+          originalConsoleLog(`${debugPrefix} - Console intercepted:`, minutes.toFixed(2), 'min ✅');
+        }
       }
     } catch (err) {
-      try { originalConsoleLog('af page-hook console error', err); } catch (e) {}
+      originalConsoleLog(`${debugPrefix} - Console intercept error:`, err);
     }
   };
 
-  // Start function interception immediately
-  interceptWriteToElement();
-
-  // Also try to intercept DOM manipulation as a third fallback
-  function interceptDOMUpdates() {
+  // Enhanced DOM monitoring for additional reliability
+  function setupDOMMonitoring() {
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (mutation.target.id === 'phoneQueueAS' && mutation.type === 'childList') {
-          // Their script just updated the DOM - we can override it now
-          originalConsoleLog('🔄 AF detected DOM update to #phoneQueueAS');
+        if (mutation.target.id === 'phoneQueueAS' && 
+            mutation.type === 'childList') {
+          originalConsoleLog(`${debugPrefix} - DOM update detected on #phoneQueueAS`);
         }
       });
     });
     
     // Start observing when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        const phoneElement = document.querySelector('#phoneQueueAS');
-        if (phoneElement) {
-          observer.observe(phoneElement, { childList: true, subtree: true });
-        }
-      });
-    } else {
+    function startObserving() {
       const phoneElement = document.querySelector('#phoneQueueAS');
       if (phoneElement) {
-        observer.observe(phoneElement, { childList: true, subtree: true });
+        observer.observe(phoneElement, { 
+          childList: true, 
+          subtree: true, 
+          characterData: true 
+        });
+        originalConsoleLog(`${debugPrefix} - DOM monitoring active on #phoneQueueAS`);
+      } else {
+        // Try again in a moment if element not found
+        setTimeout(startObserving, 1000);
       }
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startObserving);
+    } else {
+      startObserving();
     }
   }
 
-  interceptDOMUpdates();
+  // Initialize all monitoring methods
+  try {
+    interceptWriteToElement();
+    setupDOMMonitoring();
+    originalConsoleLog(`${debugPrefix} - All monitoring systems initialized ✅`);
+  } catch (err) {
+    originalConsoleLog(`${debugPrefix} - Initialization error:`, err);
+  }
 })();

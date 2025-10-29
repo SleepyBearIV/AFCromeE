@@ -1,97 +1,152 @@
-# Arbetsförmedling Queue Time Extension
+# AF Queue Monitor - Exakta kötider för Arbetsförmedlingen
 
-A Chrome extension that displays exact queue times in minutes instead of just "lång kötid" (long queue) on Arbetsförmedlingen's contact page.
+> 🎯 **Se exakt väntetid i minuter istället för bara "lång kötid"**
 
-## 🎯 The Problem
-Arbetsförmedlingen's website shows "lång kötid" for any queue time over 15 minutes, but their system actually calculates exact times. This extension captures those exact times and displays them to users.
+Chrome-tillägg som visar exakta kötider på Arbetsförmedlingens kontaktsida. Ingen mer gissning - se precis hur länge du behöver vänta!
 
-## ✨ How It Works
-The extension intercepts console log messages from Arbetsförmedlingen's own scripts that contain exact queue times in the format:
-```
-#phoneQueueAS - 109.54333333333 min
-```
+[![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](https://chrome.google.com/webstore)
+[![Version](https://img.shields.io/badge/Version-1.2.0-green?style=for-the-badge)](https://github.com/SleepyBearIV/AFCromeE)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-## 🔧 Recent Fixes (v1.1.0)
+## ✨ Funktioner
 
-### Major Issues Fixed:
-1. **❌ Hardcoded queue times** → **✅ Real-time console interception**
-   - Removed hardcoded `149` minute value
-   - Implemented proper console.log interception to capture actual queue times
+### 🎯 **Exakta kötider**
+- Visar precis hur många minuter du behöver vänta
+- Ingen mer "lång kötid" - se 154.2 minuter istället
 
-2. **❌ Missing core functionality** → **✅ Proper console monitoring**
-   - Added `interceptConsole()` function to capture queue time logs
-   - Implemented `extractQueueTime()` to parse console messages
+### 🔴🟡🟢 **Färgkodad status**
+- **Grön**: Mycket kort kö (≤5 min)
+- **Gul**: Kort kö (≤15 min)  
+- **Orange**: Medellång kö (≤30 min)
+- **Röd**: Lång kö (>30 min)
 
-3. **❌ Poor error handling** → **✅ Robust error handling**
-   - Added proper null checks and validation
-   - Implemented fallback mechanisms for element detection
+### 📱 **Flytande indikator**
+- Diskret indikator i hörnet av sidan
+- Klicka för detaljerad information
+- Uppdateras automatiskt i realtid
 
-4. **❌ Infinite loops** → **✅ Safe DOM updates**
-   - Added `data-af-modified` attribute to prevent duplicate updates
-   - Improved MutationObserver implementation
+### ⚡ **Realtidsuppdatering**
+- Data hämtas direkt från Arbetsförmedlingens system
+- Automatiska uppdateringar när kötider ändras
+- Ingen fördröjning eller cachning
 
-5. **❌ Limited URL matching** → **✅ Comprehensive URL support**
-   - Extended manifest to support multiple Arbetsförmedlingen URLs
-   - Changed run timing to `document_start` for better interception
+## 🚀 Installation
 
-### Technical Improvements:
-- **Console Interception**: Properly wraps `console.log` to capture queue data
-- **Queue Time Extraction**: Regex pattern matching for "#phoneQueueAS - X min" format
-- **Safe DOM Updates**: Prevents modification loops with attribute flags
-- **Better Timing**: Runs at document start to catch all console logs
-- **Cleanup**: Proper resource cleanup on page unload
+### Från Chrome Web Store (Rekommenderat)
+*Coming soon - under review*
 
-## 🚀 Features
-- **Real-time queue monitoring**: Captures exact times from Arbetsförmedlingen's system
-- **Visual indicators**: Color-coded floating indicator (green/yellow/orange/red)
-- **Page integration**: Updates the actual page content with exact times
-- **Click for details**: Click the floating indicator for more information
+### Manuell installation (För utvecklare)
+1. Ladda ner eller klona detta repository
+2. Öppna Chrome och gå till `chrome://extensions/`
+3. Aktivera "Utvecklarläge" (toggle i övre högra hörnet)
+4. Klicka "Läs in uppackad"
+5. Välj mappen med tillägget
+6. Besök [Arbetsförmedlingens kontaktsida](https://arbetsformedlingen.se/kontakt/for-arbetssokande)
 
-## 📦 Installation
-1. Download or clone this repository
-2. Open Chrome and go to `chrome://extensions/`
-3. Enable "Developer mode"
-4. Click "Load unpacked" and select the extension folder
-5. Visit [Arbetsförmedlingen's contact page](https://arbetsformedlingen.se/kontakt/for-arbetssokande)
+## 🎬 Hur det fungerar
 
-## 🎨 Color Coding
-- 🟢 **Green**: Very short queue (≤5 minutes)
-- 🟡 **Yellow**: Short queue (≤15 minutes)  
-- 🟠 **Orange**: Medium queue (≤30 minutes)
-- 🔴 **Red**: Long queue (>30 minutes)
+### 1. **Besök kontaktsidan**
+Gå till Arbetsförmedlingens kontaktsida som vanligt
 
-## 🔍 How the Console Interception Works
+### 2. **Se exakta tider**
+Istället för "lång kötid" ser du: **"Just nu kan det vara lång kötid (154.2 min)"**
+
+### 3. **Flytande indikator**
+En diskret indikator visas med:
+- 🎯 Aktuell kötid
+- 🔴 Färgkodad status  
+- ⏰ Senast uppdaterad
+
+### 4. **Klicka för detaljer**
+Klicka på indikatorn för mer information om kötiden
+
+## � Teknisk information
+
+### Arkitektur
+- **Manifest V3** - Senaste Chrome extension standarden
+- **Dual script approach** - Content script + Page hook för robust funktion
+- **Message passing** - Säker kommunikation mellan skript-kontexter
+
+### Datakälla
 ```javascript
-// The extension intercepts console.log calls
-originalConsoleLog = console.log;
-console.log = function(...args) {
-    // Call original console.log first
-    originalConsoleLog.apply(console, args);
-    
-    // Check for queue time messages
-    const message = args.join(' ');
-    if (message.includes('#phoneQueueAS') && message.includes('min')) {
-        extractQueueTime(message);
-    }
-};
+// Arbetsförmedlingen kör redan denna kod:
+const minutes = num / 60;
+console.log("#phoneQueueAS", "-", minutes, "min");
+
+// Vi interceptar och visar exakt värde
 ```
 
-## 📝 Version History
-- **v1.1.0**: Complete rewrite with proper console interception
-- **v1.0.0**: Initial version (had hardcoded values and issues)
+### Säkerhet
+- ✅ Inga externa API-anrop
+- ✅ Ingen datainsamling
+- ✅ Läser endast offentlig data
+- ✅ Minimala behörigheter
+
+## �️ Integritet
+
+Detta tillägg:
+- ✅ **Samlar INGEN data** om dig eller din användning
+- ✅ **Skickar INGET** till externa servrar  
+- ✅ **Fungerar offline** när sidan är laddad
+- ✅ **Läser endast** offentligt tillgänglig kötid-data
+- ✅ **Ändrar INTE** någon annan funktionalitet på sidan
+
+## 🤝 Bidra
+
+### Rapportera buggar
+- Öppna en [issue](https://github.com/SleepyBearIV/AFCromeE/issues)
+- Inkludera Chrome-version och beskrivning av problemet
+- Bifoga skärmdumpar om möjligt
+
+### Föreslå funktioner
+- Öppna en [feature request](https://github.com/SleepyBearIV/AFCromeE/issues/new)
+- Beskriv hur funktionen skulle hjälpa användare
+
+### Utveckling
+```bash
+git clone https://github.com/SleepyBearIV/AFCromeE.git
+cd AFCromeE
+# Ladda tillägget i Chrome för testning
+```
+
+## 📋 Kända begränsningar
+
+- Fungerar endast på `arbetsformedlingen.se`
+- Kräver att JavaScript är aktiverat
+- Vissa företagsnätverk kan blockera tillägg
+
+## 🆘 Felsökning
+
+### Tillägget fungerar inte?
+1. **Kontrollera att du är på rätt sida**: `arbetsformedlingen.se/kontakt/for-arbetssokande`
+2. **Öppna Developer Tools** (F12) och kolla Console för fel
+3. **Ladda om sidan** - ibland behövs en refresh
+4. **Starta om Chrome** om problem kvarstår
+
+### Ser du fortfarande "lång kötid"?
+- Öppna Console (F12) och leta efter meddelanden som börjar med "📞 AF Queue Monitor"
+- Om du ser "Function intercepted" eller "Console intercepted" så fungerar tillägget
+
+## 📞 Support
+
+- 🐛 **Buggar**: [GitHub Issues](https://github.com/SleepyBearIV/AFCromeE/issues)
+- 💡 **Funktionsförslag**: [GitHub Discussions](https://github.com/SleepyBearIV/AFCromeE/discussions)
+- 📧 **Övrigt**: Öppna en issue på GitHub
+
+## � Licens
+
+MIT License - Se [LICENSE](LICENSE) för detaljer
 
 ## ⚠️ Disclaimer
-This extension is not officially associated with Arbetsförmedlingen. It simply reads publicly available console log data to provide better user experience.
 
-## 🐛 Debug Information
-If the extension isn't working:
-1. Open Developer Tools (F12)
-2. Check Console tab for extension messages starting with 📞
-3. Look for messages like "Queue Monitor Extension Loaded" and "Extracted queue time: X minutes"
-4. Ensure you're on the correct Arbetsförmedlingen contact page
+Detta tillägg är **inte officiellt** från Arbetsförmedlingen. Det visar endast offentligt tillgänglig data på ett mer användarvänligt sätt.
 
-## 🔧 Technical Details
-- **Manifest Version**: 3
-- **Permissions**: Host permissions for arbetsformedlingen.se
-- **Content Script**: Runs at document_start for optimal console interception
-- **No external dependencies**: Pure JavaScript implementation
+---
+
+<div align="center">
+
+**Gjort med ❤️ för alla som är trötta på att bara se "lång kötid"**
+
+[⭐ Stjärnmärk på GitHub](https://github.com/SleepyBearIV/AFCromeE) • [🚀 Lägg till i Chrome](https://chrome.google.com/webstore) • [🐛 Rapportera bugg](https://github.com/SleepyBearIV/AFCromeE/issues)
+
+</div>

@@ -1,7 +1,7 @@
 // Content script (isolated world). Injects page-hook.js into page context, listens for window messages,
 // and updates the DOM (#phoneQueueAS) + shows a floating indicator with color coding.
 
-console.log('📞 Queue Monitor Extension Loaded (content script)');
+console.log('📞 AF Queue Monitor Extension v1.2.0 - Loading...');
 
 (function () {
   // Inject the page-hook into the page context so we can intercept console.log there.
@@ -11,9 +11,9 @@ console.log('📞 Queue Monitor Extension Loaded (content script)');
       s.src = chrome.runtime.getURL('page-hook.js');
       s.onload = function () { this.remove(); };
       (document.head || document.documentElement).appendChild(s);
-      console.log('🎯 Console interception injected');
+      console.log('✅ AF Queue Monitor - Page hook injected successfully');
     } catch (e) {
-      console.error('Failed to inject page-hook', e);
+      console.error('❌ AF Queue Monitor - Failed to inject page-hook:', e);
     }
   }
 
@@ -22,56 +22,111 @@ console.log('📞 Queue Monitor Extension Loaded (content script)');
   // Create floating indicator element once
   let indicator = null;
   function ensureIndicator() {
-    if (indicator) return indicator;
+    if (indicator && document.contains(indicator)) return indicator;
+    
     indicator = document.createElement('div');
     indicator.id = 'af-queue-indicator';
-    indicator.style.position = 'fixed';
-    indicator.style.right = '16px';
-    indicator.style.bottom = '16px';
-    indicator.style.zIndex = 999999;
-    indicator.style.minWidth = '160px';
-    indicator.style.padding = '10px 12px';
-    indicator.style.borderRadius = '8px';
-    indicator.style.boxShadow = '0 6px 18px rgba(0,0,0,0.18)';
-    indicator.style.fontFamily = 'Arial, sans-serif';
-    indicator.style.fontSize = '13px';
-    indicator.style.color = '#fff';
-    indicator.style.cursor = 'pointer';
-    indicator.style.transition = 'transform 160ms ease, opacity 160ms ease';
-    indicator.style.opacity = '0.95';
-    indicator.title = 'Click for queue details';
+    indicator.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 999999;
+      min-width: 180px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0.95;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      user-select: none;
+    `;
+    
+    indicator.title = 'Klicka för mer information • AF Queue Monitor';
+    
+    // Enhanced click handler
     indicator.addEventListener('click', () => {
-      // Toggle a tiny details tooltip inside it
-      const details = indicator.querySelector('.af-details');
-      if (details) {
-        details.style.display = details.style.display === 'none' ? 'block' : 'none';
+      const minutes = indicator.getAttribute('data-minutes');
+      const lastUpdate = indicator.getAttribute('data-last-update');
+      if (minutes) {
+        const timeFormatted = parseFloat(minutes);
+        const hours = Math.floor(timeFormatted / 60);
+        const mins = Math.round(timeFormatted % 60);
+        const timeString = hours > 0 ? `${hours}h ${mins}min` : `${mins} minuter`;
+        
+        alert(`🕐 Aktuell kötid: ${timeString}\n\n📊 Exakt tid: ${minutes} minuter\n⏰ Senast uppdaterad: ${lastUpdate || 'Nu'}\n\n✨ Data hämtas i realtid från Arbetsförmedlingens system\n🔄 Uppdateras automatiskt när kötiden ändras`);
       }
     });
+    
+    // Hover effects
+    indicator.addEventListener('mouseenter', () => {
+      indicator.style.transform = 'translateY(-2px) scale(1.02)';
+      indicator.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1)';
+    });
+    
+    indicator.addEventListener('mouseleave', () => {
+      indicator.style.transform = 'translateY(0) scale(1)';
+      indicator.style.boxShadow = '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)';
+    });
+    
     document.documentElement.appendChild(indicator);
     return indicator;
   }
 
   function colorForMinutes(minutes) {
-    if (minutes <= 5) return { color: '#198754', label: 'Mycket kort' }; // green
-    if (minutes <= 15) return { color: '#ffc107', label: 'Kort' }; // yellow
-    if (minutes <= 30) return { color: '#fd7e14', label: 'Medel' }; // orange
-    return { color: '#dc3545', label: 'Lång' }; // red
+    if (minutes <= 5) return { 
+      color: 'linear-gradient(135deg, #10b981, #059669)', 
+      label: 'Mycket kort kö',
+      icon: '🟢'
+    };
+    if (minutes <= 15) return { 
+      color: 'linear-gradient(135deg, #f59e0b, #d97706)', 
+      label: 'Kort kö',
+      icon: '🟡'
+    };
+    if (minutes <= 30) return { 
+      color: 'linear-gradient(135deg, #f97316, #ea580c)', 
+      label: 'Medellång kö',
+      icon: '🟠'
+    };
+    return { 
+      color: 'linear-gradient(135deg, #ef4444, #dc2626)', 
+      label: 'Lång kö',
+      icon: '🔴'
+    };
   }
 
   function updateFloatingIndicator(minutes) {
     const node = ensureIndicator();
     const c = colorForMinutes(minutes);
+    const timeFormatted = minutes.toFixed(1);
+    const now = new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+    
     node.style.background = c.color;
+    node.setAttribute('data-minutes', timeFormatted);
+    node.setAttribute('data-last-update', now);
+    
     node.innerHTML = `
-      <div style="font-weight:700;line-height:1">Kötid: ${minutes.toFixed(1)} min</div>
-      <div style="font-size:11px;opacity:0.95">${c.label}</div>
-      <div class="af-details" style="display:none;margin-top:6px;font-size:11px;opacity:0.95">Uppdateras i realtid från servern</div>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+        <span style="font-size: 16px;">${c.icon}</span>
+        <div style="font-weight: 600; font-size: 15px; line-height: 1;">Kötid</div>
+      </div>
+      <div style="font-size: 18px; font-weight: 700; margin-bottom: 2px;">${timeFormatted} min</div>
+      <div style="font-size: 11px; opacity: 0.9; font-weight: 500;">${c.label}</div>
+      <div style="font-size: 10px; opacity: 0.7; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px;">
+        Uppdaterad: ${now}
+      </div>
     `;
   }
 
   // Core: handle queue time messages from page-hook
   function handleQueueTime(minutes, elSelector) {
-    console.log('🎯 Extracted queue time:', minutes);
+    console.log('🎯 AF Queue Monitor - Extracted queue time:', minutes, 'minutes');
+    
     // Update floating indicator immediately
     updateFloatingIndicator(minutes);
 
@@ -80,36 +135,57 @@ console.log('📞 Queue Monitor Extension Loaded (content script)');
       try {
         const phoneElement = document.querySelector(elSelector || '#phoneQueueAS');
         if (!phoneElement) {
-          console.warn('phone element not found for selector', elSelector);
+          console.warn('⚠️ AF Queue Monitor - Phone element not found for selector:', elSelector);
           return;
         }
-        // Build display text per spec: "Just nu kan det vara <strong>lång</strong> kötid (154.4 min)"
+        
+        // Build enhanced display text
         const c = colorForMinutes(minutes);
-        const strongColor = c.color;
-        const text = `Just nu kan det vara <strong style="color:${strongColor};">lång</strong> kötid (${minutes.toFixed(1)} min)`;
+        const timeFormatted = minutes.toFixed(1);
+        const strongColor = c.color.includes('gradient') ? 
+          c.color.match(/135deg, ([^,]+)/)[1] : c.color;
+        
+        const text = `Just nu kan det vara <strong style="color:${strongColor};">lång</strong> kötid <br> (<strong style="color:${strongColor};">${timeFormatted} min</strong>)`;
         phoneElement.innerHTML = text;
-        console.log('✅ Updated queue display:', minutes.toFixed(1), 'min');
+        
+        console.log('✅ AF Queue Monitor - Updated queue display successfully:', timeFormatted, 'min');
       } catch (e) {
-        console.error('Failed to override #phoneQueueAS', e);
+        console.error('❌ AF Queue Monitor - Failed to update #phoneQueueAS:', e);
       }
-    }, 600); // small delay to allow their script to run and finish
+    }, 600); // Allow their script to complete first
   }
 
   // Listen to messages from page-hook
   window.addEventListener('message', (ev) => {
     const msg = ev.data;
     if (!msg || msg.source !== 'af-queue-monitor') return;
+    
     const minutes = parseFloat(msg.minutes);
-    if (Number.isFinite(minutes)) {
-      console.log(`🎯 Received queue data via ${msg.method}:`, minutes, 'min');
+    if (Number.isFinite(minutes) && minutes > 0) {
+      console.log(`📡 AF Queue Monitor - Received queue data via ${msg.method}:`, minutes, 'min');
       handleQueueTime(minutes, msg.el);
     }
   });
 
-  // Expose a small debug on page so dev can trigger an update manually in console (optional)
+  // Enhanced debug interface for developers
   try {
     window.__afQueueMonitor = {
-      simulate(minutes) { handleQueueTime(minutes, '#phoneQueueAS'); }
+      version: '1.2.0',
+      simulate(minutes) { 
+        console.log('🧪 AF Queue Monitor - Simulating queue time:', minutes);
+        handleQueueTime(minutes, '#phoneQueueAS'); 
+      },
+      getStatus() {
+        const ind = document.querySelector('#af-queue-indicator');
+        return {
+          loaded: true,
+          indicatorVisible: !!ind,
+          lastUpdate: ind?.getAttribute('data-last-update'),
+          currentMinutes: ind?.getAttribute('data-minutes')
+        };
+      }
     };
-  } catch (e) {}
+  } catch (e) {
+    console.warn('⚠️ AF Queue Monitor - Debug interface setup failed:', e);
+  }
 })();

@@ -3,66 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arbetsförmedling Queue Time</title>
+    <title>AF Queue Monitor</title>
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📞 Kötid Monitor</h1>
-            <p class="subtitle">Arbetsförmedlingen</p>
+            <div class="logo">
+                <span class="icon">📞</span>
+                <div class="title">
+                    <h1>AF Queue Monitor</h1>
+                    <p class="subtitle">Exakta kötider för Arbetsförmedlingen</p>
+                </div>
+            </div>
         </div>
         
         <div class="content">
-            <div class="info-box">
-                <h2>Om tillägget</h2>
-                <p>Detta tillägg fångar exakt kötid från Arbetsförmedlingens egna system och visar den i minuter istället för bara "lång kötid".</p>
-                <p><strong>Fungerar genom att läsa konsolloggar</strong> som visar verkliga kötider.</p>
+            <div class="info-box highlight">
+                <div class="info-icon">✨</div>
+                <div class="info-content">
+                    <h2>Se exakta väntetider</h2>
+                    <p>Detta tillägg visar exakt kötid i minuter istället för bara "lång kötid". Data hämtas direkt från Arbetsförmedlingens system i realtid.</p>
+                </div>
+            </div>
+            
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-text">
+                        <h3>Exakta tider</h3>
+                        <p>Se precis hur många minuter du behöver vänta</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔄</div>
+                    <div class="feature-text">
+                        <h3>Realtidsuppdatering</h3>
+                        <p>Kötiderna uppdateras automatiskt</p>
+                    </div>
+                </div>
             </div>
             
             <div class="status-indicators">
-                <h3>Färgkoder:</h3>
-                <div class="indicator-item">
-                    <span class="color-box" style="background: #28a745;"></span>
-                    <span>Mycket kort (≤5 min)</span>
-                </div>
-                <div class="indicator-item">
-                    <span class="color-box" style="background: #ffc107;"></span>
-                    <span>Kort (≤15 min)</span>
-                </div>
-                <div class="indicator-item">
-                    <span class="color-box" style="background: #fd7e14;"></span>
-                    <span>Medel (≤30 min)</span>
-                </div>
-                <div class="indicator-item">
-                    <span class="color-box" style="background: #dc3545;"></span>
-                    <span>Lång (>30 min)</span>
+                <h3>Färgkoder för kötider:</h3>
+                <div class="indicator-grid">
+                    <div class="indicator-item">
+                        <span class="color-box green"></span>
+                        <span>Mycket kort (≤5 min)</span>
+                    </div>
+                    <div class="indicator-item">
+                        <span class="color-box yellow"></span>
+                        <span>Kort (≤15 min)</span>
+                    </div>
+                    <div class="indicator-item">
+                        <span class="color-box orange"></span>
+                        <span>Medellång (≤30 min)</span>
+                    </div>
+                    <div class="indicator-item">
+                        <span class="color-box red"></span>
+                        <span>Lång (>30 min)</span>
+                    </div>
                 </div>
             </div>
             
             <div class="instructions">
-                <h3>Hur det fungerar:</h3>
+                <h3>Så fungerar det:</h3>
                 <ol>
-                    <li>Besök <a href="https://arbetsformedlingen.se/kontakt/for-arbetssokande" target="_blank">Arbetsförmedlingens kontaktsida</a></li>
-                    <li>Tillägget interceptar automatiskt konsolloggar</li>
-                    <li>Exakt kötid extraheras från systemets egna data</li>
-                    <li>Både sidinnehåll och flytande indikator uppdateras</li>
-                    <li>Klicka på indikatorn för mer information</li>
+                    <li>
+                        <span class="step-number">1</span>
+                        <span>Besök <a href="https://arbetsformedlingen.se/kontakt/for-arbetssokande" target="_blank" rel="noopener">Arbetsförmedlingens kontaktsida</a></span>
+                    </li>
+                    <li>
+                        <span class="step-number">2</span>
+                        <span>Tillägget visar automatiskt exakta kötider</span>
+                    </li>
+                    <li>
+                        <span class="step-number">3</span>
+                        <span>En flytande indikator visas med aktuell status</span>
+                    </li>
+                    <li>
+                        <span class="step-number">4</span>
+                        <span>Klicka på indikatorn för mer detaljer</span>
+                    </li>
                 </ol>
             </div>
             
-            <div class="technical-info">
-                <h3>Teknisk information:</h3>
-                <p style="font-size: 12px; color: #666;">
-                    Läser meddelanden som "#phoneQueueAS - X.XX min" från konsolloggar för att få exakta kötider.
-                </p>
+            <div class="action-section">
+                <button id="openAF" class="primary-button">
+                    <span class="button-icon">🚀</span>
+                    Öppna Arbetsförmedlingen
+                </button>
             </div>
         </div>
         
         <div class="footer">
-            <p class="version">Version 1.1.0</p>
-            <p class="note">Detta tillägg är inte officiellt från Arbetsförmedlingen</p>
+            <div class="version-info">
+                <span class="version">Version 1.2.0</span>
+                <span class="separator">•</span>
+                <span class="status" id="status">Aktiv</span>
+            </div>
+            <p class="disclaimer">Detta tillägg är inte officiellt från Arbetsförmedlingen</p>
         </div>
     </div>
+    
+    <script src="popup.js"></script>
 </body>
 </html>

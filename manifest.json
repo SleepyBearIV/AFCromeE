@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Arbetsförmedling Queue Time Display",
+  "name": "AF Queue Monitor - Exakt kötid för Arbetsförmedlingen",
   "version": "1.2.0",
-  "description": "Visar exakt kötid i minuter istället för 'lång kötid' på Arbetsförmedlingens kontaktsida",
-  "author": "AF Queue Monitor",
+  "description": "Visar exakt väntetid i minuter istället för bara 'lång kötid' på Arbetsförmedlingens kontaktsida. Sparar din tid med exakta kötider!",
+  "author": "AF Queue Monitor Team",
   "permissions": [],
   "host_permissions": [
     "*://arbetsformedlingen.se/*",
@@ -28,6 +28,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
+    "default_title": "AF Queue Monitor - Se exakta kötider",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
