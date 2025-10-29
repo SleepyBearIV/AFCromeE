@@ -145,7 +145,7 @@ console.log('📞 AF Queue Monitor Extension v1.2.0 - Loading...');
         const strongColor = c.color.includes('gradient') ? 
           c.color.match(/135deg, ([^,]+)/)[1] : c.color;
         
-        const text = `Just nu kan det vara <strong style="color:${strongColor};">lång</strong> kötid <br> (<strong style="color:${strongColor};">${timeFormatted} min</strong>)`;
+        const text = `Just nu är det <strong style="color:${strongColor};">${timeFormatted} min</strong> kötid `;
         phoneElement.innerHTML = text;
         
         console.log('✅ AF Queue Monitor - Updated queue display successfully:', timeFormatted, 'min');

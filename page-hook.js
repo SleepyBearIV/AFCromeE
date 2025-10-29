@@ -1,9 +1,9 @@
 (function(){
   // AF Queue Monitor - Page Hook
-  // Intercepts CallGuide.api.getQueueStatus and calculates average
+  // Intercepts CallGuide.api.getQueueStatus and calculates average exactly like their system
   
   let phoneQueueResults = [];
-  let phoneQueueTimer = null;
+  const expectedPhoneQueues = ['akts5', 'akts6', 'akts1', 'aktK2ASInkUppf', 'aktS4'];
   
   function interceptCallGuideAPI() {
     let attempts = 0;
@@ -25,32 +25,28 @@
               try {
                 if (data && data.resultData && data.resultData.queueStatus && data.resultData.queueStatus.eqt) {
                   const seconds = data.resultData.queueStatus.eqt;
-                  const minutes = seconds / 60;
                   
-                  // Collect phone queue results
-                  if (queueName && (queueName.includes('akts') || queueName.includes('aktK2ASInkUppf') || queueName.includes('aktS4'))) {
-                    phoneQueueResults.push(minutes);
+                  // Only collect phone queue results from expected queues
+                  if (expectedPhoneQueues.includes(queueName)) {
+                    phoneQueueResults.push(seconds); // Store raw seconds, not minutes
                     
-                    // Clear existing timer and set new one
-                    if (phoneQueueTimer) clearTimeout(phoneQueueTimer);
-                    
-                    phoneQueueTimer = setTimeout(() => {
-                      if (phoneQueueResults.length > 0) {
-                        // Calculate average
-                        const sum = phoneQueueResults.reduce((prev, curr) => prev + curr, 0);
-                        const averageMinutes = sum / phoneQueueResults.length;
-                        
-                        // Send average to content script
-                        window.postMessage({
-                          source: 'af-queue-monitor',
-                          minutes: averageMinutes,
-                          method: 'api-average'
-                        }, '*');
-                        
-                        // Reset for next batch
-                        phoneQueueResults = [];
-                      }
-                    }, 500);
+                    // Check if we have all 5 phone queue results
+                    if (phoneQueueResults.length === expectedPhoneQueues.length) {
+                      // Calculate average exactly like their reducer function
+                      const sum = phoneQueueResults.reduce((previousValue, currentValue) => previousValue + currentValue, 0);
+                      const averageSeconds = sum / phoneQueueResults.length;
+                      const averageMinutes = averageSeconds / 60; // Convert to minutes ONCE
+                      
+                      // Send average to content script
+                      window.postMessage({
+                        source: 'af-queue-monitor',
+                        minutes: averageMinutes,
+                        method: 'api-average'
+                      }, '*');
+                      
+                      // Reset for next batch
+                      phoneQueueResults = [];
+                    }
                   }
                 }
               } catch (err) {

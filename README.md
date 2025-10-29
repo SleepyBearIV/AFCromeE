@@ -5,7 +5,7 @@
 Chrome-tillägg som visar exakta kötider på Arbetsförmedlingens kontaktsida. Ingen mer gissning - se precis hur länge du behöver vänta!
 
 [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)](https://chrome.google.com/webstore)
-[![Version](https://img.shields.io/badge/Version-1.2.0-green?style=for-the-badge)](https://github.com/SleepyBearIV/AFCromeE)
+[![Version](https://img.shields.io/badge/Version-1.0.0-green?style=for-the-badge)](https://github.com/SleepyBearIV/AFCromeE)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 ## ✨ Funktioner
@@ -23,12 +23,7 @@ Chrome-tillägg som visar exakta kötider på Arbetsförmedlingens kontaktsida. 
 ### 📱 **Flytande indikator**
 - Diskret indikator i hörnet av sidan
 - Klicka för detaljerad information
-- Uppdateras automatiskt i realtid
-
-### ⚡ **Realtidsuppdatering**
-- Data hämtas direkt från Arbetsförmedlingens system
-- Automatiska uppdateringar när kötider ändras
-- Ingen fördröjning eller cachning
+- Visar exakt kötid istället för vag information
 
 ## 🚀 Installation
 
