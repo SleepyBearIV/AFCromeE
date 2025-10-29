@@ -18,12 +18,13 @@
         const originalGetQueueStatus = window.CallGuide.api.getQueueStatus;
         
         window.CallGuide.api.getQueueStatus = function(param1, queueName) {
-          const result = originalGetQueueStatus.call(this, param1, queueName);
-          
-          if (result && typeof result.then === 'function') {
-            return result.then(data => {
-              try {
-                if (data && data.resultData && data.resultData.queueStatus && data.resultData.queueStatus.eqt) {
+          try {
+            const result = originalGetQueueStatus.call(this, param1, queueName);
+            
+            if (result && typeof result.then === 'function') {
+              return result.then(data => {
+                try {
+                  if (data && data.resultData && data.resultData.queueStatus && data.resultData.queueStatus.eqt) {
                   const seconds = data.resultData.queueStatus.eqt;
                   
                   // Only collect phone queue results from expected queues
@@ -44,20 +45,27 @@
                         method: 'api-average'
                       }, '*');
                       
-                      // Reset for next batch
-                      phoneQueueResults = [];
                     }
                   }
                 }
               } catch (err) {
-                // Silent fail
+                console.error('AF Queue Monitor - API intercept error:', err);
+                console.error('Queue name:', queueName, 'Data:', data);
               }
               
               return data;
+            }).catch(promiseErr => {
+              console.error('AF Queue Monitor - Promise rejection:', promiseErr);
+              throw promiseErr; // Re-throw to maintain original behavior
             });
           }
           
           return result;
+        } catch (apiErr) {
+          console.error('AF Queue Monitor - API call error:', apiErr);
+          console.error('Parameters:', param1, queueName);
+          throw apiErr; // Re-throw to maintain original behavior
+        }
         };
         
         return;
