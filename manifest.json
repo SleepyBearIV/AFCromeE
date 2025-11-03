@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AF Queue Monitor - Exakt kötid för Arbetsförmedlingen",
-  "version": "1.0.0",
+  "version": "0.5.0",
   "description": "Visar exakt väntetid i minuter istället för bara 'lång kötid' på Arbetsförmedlingens kontaktsida. Sparar din tid med exakta kötider!",
   "author": "AF Queue Monitor Team",
   "permissions": [],
