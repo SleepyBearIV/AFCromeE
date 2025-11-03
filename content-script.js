@@ -1,8 +1,6 @@
 // Content script (isolated world). Injects page-hook.js into page context, listens for window messages,
 // and updates the DOM (#phoneQueueAS) + shows a floating indicator with color coding.
 
-console.log('📞 AF Queue Monitor Extension v1.2.0 - Loading...');
-
 (function () {
   // Inject the page-hook into the page context so we can intercept console.log there.
   function injectPageHook() {
@@ -11,9 +9,8 @@ console.log('📞 AF Queue Monitor Extension v1.2.0 - Loading...');
       s.src = chrome.runtime.getURL('page-hook.js');
       s.onload = function () { this.remove(); };
       (document.head || document.documentElement).appendChild(s);
-      console.log('✅ AF Queue Monitor - Page hook injected successfully');
     } catch (e) {
-      console.error('❌ AF Queue Monitor - Failed to inject page-hook:', e);
+      // Silent fail for production
     }
   }
 
@@ -125,8 +122,6 @@ console.log('📞 AF Queue Monitor Extension v1.2.0 - Loading...');
 
   // Core: handle queue time messages from page-hook
   function handleQueueTime(minutes, elSelector) {
-    console.log('🎯 AF Queue Monitor - Extracted queue time:', minutes, 'minutes');
-    
     // Update floating indicator immediately
     updateFloatingIndicator(minutes);
 
@@ -134,10 +129,7 @@ console.log('📞 AF Queue Monitor Extension v1.2.0 - Loading...');
     setTimeout(() => {
       try {
         const phoneElement = document.querySelector(elSelector || '#phoneQueueAS');
-        if (!phoneElement) {
-          console.warn('⚠️ AF Queue Monitor - Phone element not found for selector:', elSelector);
-          return;
-        }
+        if (!phoneElement) return;
         
         // Build enhanced display text
         const c = colorForMinutes(minutes);
@@ -147,10 +139,8 @@ console.log('📞 AF Queue Monitor Extension v1.2.0 - Loading...');
         
         const text = `Just nu är det <strong style="color:${strongColor};">${timeFormatted} min</strong> kötid `;
         phoneElement.innerHTML = text;
-        
-        console.log('✅ AF Queue Monitor - Updated queue display successfully:', timeFormatted, 'min');
       } catch (e) {
-        console.error('❌ AF Queue Monitor - Failed to update #phoneQueueAS:', e);
+        // Silent fail for production
       }
     }, 600); // Allow their script to complete first
   }
@@ -165,26 +155,4 @@ console.log('📞 AF Queue Monitor Extension v1.2.0 - Loading...');
       handleQueueTime(minutes, '#phoneQueueAS');
     }
   });
-
-  // Enhanced debug interface for developers
-  try {
-    window.__afQueueMonitor = {
-      version: '1.2.0',
-      simulate(minutes) { 
-        console.log('🧪 AF Queue Monitor - Simulating queue time:', minutes);
-        handleQueueTime(minutes, '#phoneQueueAS'); 
-      },
-      getStatus() {
-        const ind = document.querySelector('#af-queue-indicator');
-        return {
-          loaded: true,
-          indicatorVisible: !!ind,
-          lastUpdate: ind?.getAttribute('data-last-update'),
-          currentMinutes: ind?.getAttribute('data-minutes')
-        };
-      }
-    };
-  } catch (e) {
-    console.warn('⚠️ AF Queue Monitor - Debug interface setup failed:', e);
-  }
 })();

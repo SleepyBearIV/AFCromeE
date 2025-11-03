@@ -2,8 +2,6 @@
 // Handles popup interactions and status updates
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📱 AF Queue Monitor popup loaded');
-    
     // Get elements
     const openAFButton = document.getElementById('openAF');
     const statusElement = document.getElementById('status');
@@ -20,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Open the page
         chrome.tabs.create({ url: url }, function(tab) {
-            console.log('🚀 Opened Arbetsförmedlingen contact page');
             // Close popup after opening
             window.close();
         });
@@ -50,36 +47,4 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check status on popup open
     checkExtensionStatus();
-    
-    // Add some interactive animations
-    const featureItems = document.querySelectorAll('.feature-item');
-    featureItems.forEach((item, index) => {
-        item.style.animationDelay = `${index * 0.1}s`;
-        
-        item.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-        });
-        
-        item.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-        });
-    });
-    
-    // Add hover effects to color boxes
-    const colorBoxes = document.querySelectorAll('.color-box');
-    colorBoxes.forEach(box => {
-        box.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.1)';
-            this.style.transition = 'transform 0.2s ease';
-        });
-        
-        box.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1)';
-        });
-    });
-    
-    // Analytics (optional - for development)
-    console.log('📊 AF Queue Monitor popup interaction logged');
 });
